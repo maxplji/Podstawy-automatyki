@@ -1,10 +1,10 @@
-clc
-clear all 
-close all
+clc             %Czyszczenie okna poleceń
+clear all       %Usunięcie zmiennych
+close all       %zamknięcie wykresów
 
 s = tf('s'); 
 
-k = 3, T1 = 3, T2 = 4, T3= 5; %wartości liczbowe dla wzmocnienia
+k = 3, T1 = 3, T2 = 4, T3= 5; %wartości liczbowe które wybraliśmy
 
 
 Ks = k / ((1 + s * T1 ) * (1 + s * T2) * (1 + s * T3)); %transmitancja
@@ -12,18 +12,18 @@ Ks = k / ((1 + s * T1 ) * (1 + s * T2) * (1 + s * T3)); %transmitancja
 zpk(Ks); 
 
 
-[Zera, Bieguny, Wzmocnienia] = zpkdata(Ks, "v");
+[Zera, Bieguny, Wzmocnienia] = zpkdata(Ks, "v");  %Wyznaczenie zer biegunów i wzmocnienia
 
 figure
-pzmap(Ks);
+pzmap(Ks); %Wyświetlenie wykresu zer i biegunów transmitancji
 
-[L, M] = tfdata(Ks, 'v');
+[L, M] = tfdata(Ks, 'v'); %Pobranie licznika i mianownika transmitancji
 
-[A, B, C, D] = tf2ss(L, M);
+[A, B, C, D] = tf2ss(L, M); %Zamiana transmitancji na równania stanu
 
-sys = ss(A, B, C, D);
+sys = ss(A, B, C, D); %Utworzenie modelu układu w przestrzeni stanów
 
-%wyświetlanie odpowiedzi skokowej transmitancji
+%wyświetlanie odpowiedzi skokowej układu
 figure
 step(Ks, 'r', 0:0.1:50);
 title('Odpowiedz skokowa transmitancji');
@@ -34,24 +34,36 @@ grid on;
 
 Ks2 = Ks * (s+1);
 
+%Charakterystyki Nyquista
 figure 
 nyquist(Ks, Ks2);
 legend('Ks', 'Ks2');
+title('Charakterystyki Nyquista');
+grid on;
 
 figure
 h = nyquistplot(Ks);
 setoptions(h,'PhaseUnits','rad','Grid','on');
 
+%Charakterystyki Bodego
+figure;
+bode(Ks);
+grid on;
+title('Charakterystyka Bodego');
 
+figure;
+bodemag(Ks);
+grid on;
+title('Charakterystyka amplitudowa');
 
-Kz = 1/ (1 + Ks);
+figure;
+h = bodeplot(Ks);
+setoptions(h, 'MagUnits', 'abs', 'PhaseVisible', 'off');
 
+%linie pierwiastkowe
+K2 = 1/((s*T1+1)*(s*T2+1));
 figure
-rlocus(Kz);
-
-%figure
-%sisotool(Kz);
-
-[zapasAmp, zapasFaz, wAmp, wFaz] = margin(Kz);
-
-
+rlocus(Ks); %Wykres linii pierwiastkowych
+figure
+sisotool(Ks); %Wyznaczenie charakterystyk Bodego oraz linii pierwiastkowych
+[zapasAmp, zapasFaz, wAmp, wFaz] = margin(Ks); %Zapasy stabilnosci
