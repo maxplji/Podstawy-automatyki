@@ -1,15 +1,15 @@
 clc
-clear all
+clear all 
 close all
 
-s = tf('s');
+s = tf('s'); 
 
-k = 3, T1 = 3, T2 = 4, T3= 5;
+k = 3, T1 = 3, T2 = 4, T3= 5; %wartości liczbowe dla wzmocnienia
 
 
-Ks = k / ((1 + s * T1 ) * (1 + s * T2) * (1 + s * T3));
+Ks = k / ((1 + s * T1 ) * (1 + s * T2) * (1 + s * T3)); %transmitancja
 
-zpk(Ks);
+zpk(Ks); 
 
 
 [Zera, Bieguny, Wzmocnienia] = zpkdata(Ks, "v");
@@ -23,6 +23,7 @@ pzmap(Ks);
 
 sys = ss(A, B, C, D);
 
+%wyświetlanie odpowiedzi skokowej transmitancji
 figure
 step(Ks, 'r', 0:0.1:50);
 title('Odpowiedz skokowa transmitancji');
