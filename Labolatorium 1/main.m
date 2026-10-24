@@ -9,7 +9,7 @@ k = 3, T1 = 3, T2 = 4, T3= 5; %wartości liczbowe które wybraliśmy
 
 Ks = k / ((1 + s * T1 ) * (1 + s * T2) * (1 + s * T3)); %transmitancja
 
-zpk(Ks); 
+zpk(Ks); % wyświetlanie transmitancji w postaci biegunowej
 
 
 [Zera, Bieguny, Wzmocnienia] = zpkdata(Ks, "v");  %Wyznaczenie zer biegunów i wzmocnienia
@@ -33,71 +33,72 @@ grid on;
 
 
 Ks2 = Ks * (s+1);
+w = logspace(-4, 2, 3000);
 
 %Charakterystyki Nyquista
 figure 
-nyquist(Ks, Ks2);
+nyquist(Ks, Ks2, w);
 legend('Ks', 'Ks2');
-title('Charakterystyki Nyquista');
+title('Charakterystyki Nyquista dla Ks i Ks2');
 grid on;
 
 figure
-h = nyquistplot(Ks);
+h = nyquistplot(Ks, w);
 setoptions(h,'PhaseUnits','rad','Grid','on');
 
 %Charakterystyki Bodego
 figure;
-bode(Ks);
+bode(Ks, w);
 grid on;
 title('Charakterystyka Bodego');
 
 figure;
-bodemag(Ks);
+bodemag(Ks, w);
 grid on;
 title('Charakterystyka amplitudowa');
 
 figure;
-h = bodeplot(Ks);
+h = bodeplot(Ks, w);
 setoptions(h, 'MagUnits', 'abs', 'PhaseVisible', 'off');
 
 %linie pierwiastkowe
 K2 = 1/((s*T1+1)*(s*T2+1));
 figure
 rlocus(Ks); %Wykres linii pierwiastkowych
-figure
-sisotool(Ks); %Wyznaczenie charakterystyk Bodego oraz linii pierwiastkowych
+%figure
+%sisotool(Ks); %Wyznaczenie charakterystyk Bodego oraz linii pierwiastkowych
 [zapasAmp, zapasFaz, wAmp, wFaz] = margin(Ks); %Zapasy stabilnosci
 
 
 %Badanie układu zamkniętego
-Ke = 1/(1+Ks); %Transmitancja uchybowa
+Ku = 1/(1+Ks); %Transmitancja uchybowa
 figure
-step(Ke);
-title('Odpowiedź skokowa transmitancji uchybowej (Ke)');
+step(Ku);
+title('Odpowiedź skokowa transmitancji uchybowej (Ku)');
 grid on;
 
-Ky = Ks/(1+Ks); %Transmitancja główna 
+Ky = Ks/(1+Ks); %Transmitancja układu zamkniętego 
 figure
 step(Ky);
 title('Odpowiedź skokowa transmitancji głównej (Ky)');
 grid on;
 
 figure 
-step(Ke, Ky);
-legend('Ke', 'Ky');
-title('Porównanie odpowiedzi skokowej Ke i Ky');
+step(Ku, Ky);
+legend('Ku', 'Ky');
+title('Porównanie odpowiedzi skokowej Ku i Ky');
 grid on;
 
-minreal(K2); % Skraca tranmitancje (zera i bieguny) - w 2 kodzie to było K114
+minreal(K2); % Skraca tranmitancje (zera i bieguny)
 
 M = Ky; % Określenie zmiennych - wskaźnik nadążania
-q = Ke; % Określenie zmiennych - wskaźnik regulacji
+q = Ku; % Określenie zmiennych - wskaźnik regulacji
 figure 
 bodemag(M);
 hold on;
 bodemag(q);
-xlim([0.01 10]);
-ylim([-6 5]);
+xlim([1 10]);
+ylim([-3 8]);
 title('Przebieg wskaźnika nadążania i wskaźnika regulacji');
 grid on;
 hold off;
@@ -108,18 +109,20 @@ hold off;
 r1 = 1;             %promień zbiornika 
 a1 = pi * r1^2;     %Pole podstawy walca
 c1 = 1;             %Stała zaworu 
-h10 = 0;            %Warunek początkowy
+h10 = 0.5;            %Warunek początkowy
+
+out = sim('Lab1_placeholder.slx');
 
 
 figure;
-plot(out.tout, out.Flow); 
+plot(out.Flow.Time, out.Flow.Data); 
 grid on;
 title('Przebieg odpowiedzi skokowej przepływu (q_{12})');
 xlabel('Czas t [s]');
 ylabel('Przepływ q_{12} [m^3/s]');
 
 figure;
-plot(out.tout, out.Level); 
+plot(out.Level.Time, out.Level.Data); 
 grid on;
 title('Przebieg odpowiedzi skokowej wysokości (h_1)');
 xlabel('Czas t [s]');
