@@ -2,26 +2,27 @@ clc             %Czyszczenie okna poleceń
 clear all       %Usunięcie zmiennych
 close all       %zamknięcie wykresów
 
-s = tf('s'); 
+s = tf('s'); %utworzenie zmiennej s
 
 k = 3, T1 = 3, T2 = 4, T3= 5; %wartości liczbowe które wybraliśmy
 
 
 Ks = k / ((1 + s * T1 ) * (1 + s * T2) * (1 + s * T3)); %transmitancja
 
-zpk(Ks); % wyświetlanie transmitancji w postaci biegunowej
+zpk(Ks); %Postać biegunowa transmitancji
 
 
-[Zera, Bieguny, Wzmocnienia] = zpkdata(Ks, "v");  %Wyznaczenie zer biegunów i wzmocnienia
+[Z, B, W] = zpkdata(Ks, "v");  %Wyznaczenie zer biegunów i wzmocnienia
 
+%Wykres zer i biegunów układu
 figure
-pzmap(Ks); %Wyświetlenie wykresu zer i biegunów transmitancji
+pzmap(Ks); 
 
-[L, M] = tfdata(Ks, 'v'); %Pobranie licznika i mianownika transmitancji
+[L, trac] = tfdata(Ks, 'v'); %Pobranie licznika i mianownika transmitancji
 
-[A, B, C, D] = tf2ss(L, M); %Zamiana transmitancji na równania stanu
+[A, B, C, D] = tf2ss(L, trac); %Zamiana transmitancji na model w przestrzeni stanów
 
-sys = ss(A, B, C, D); %Utworzenie modelu układu w przestrzeni stanów
+model_ss = ss(A, B, C, D); %Utworzenie modelu układu w przestrzeni stanów
 
 %wyświetlanie odpowiedzi skokowej układu
 figure
@@ -32,19 +33,20 @@ ylabel('y');
 grid on;
 
 
-Ks2 = Ks * (s+1);
-w = logspace(-4, 2, 3000);
+Ks2 = Ks * (s+1);   %Utworzenie drugiej transmitancji do porównania charakterystyk
+w = logspace(-4, 2, 3000);   % Zakres częstotliwości do analizy charakterystyk
 
-%Charakterystyki Nyquista
+%Charakterystyki Nyquista dla obu transmitancji
 figure 
 nyquist(Ks, Ks2, w);
 legend('Ks', 'Ks2');
 title('Charakterystyki Nyquista dla Ks i Ks2');
 grid on;
 
+%Wykres Nyquista z fazą wyrażoną w radianach
 figure
-h = nyquistplot(Ks, w);
-setoptions(h,'PhaseUnits','rad','Grid','on');
+wykr = nyquistplot(Ks, w);
+setoptions(wykr,'PhaseUnits','rad','Grid','on');
 
 %Charakterystyki Bodego
 figure;
@@ -52,14 +54,16 @@ bode(Ks, w);
 grid on;
 title('Charakterystyka Bodego');
 
+%Charakterystyka amplitudowa układu
 figure;
 bodemag(Ks, w);
 grid on;
 title('Charakterystyka amplitudowa');
 
+%Charakterystyka amplitudowa bez wykresu fazy
 figure;
-h = bodeplot(Ks, w);
-setoptions(h, 'MagUnits', 'abs', 'PhaseVisible', 'off');
+wykr = bodeplot(Ks, w);
+setoptions(wykr, 'MagUnits', 'abs', 'PhaseVisible', 'off');
 
 %linie pierwiastkowe
 K2 = 1/((s*T1+1)*(s*T2+1));
@@ -67,36 +71,44 @@ figure
 rlocus(Ks); %Wykres linii pierwiastkowych
 %figure
 %sisotool(Ks); %Wyznaczenie charakterystyk Bodego oraz linii pierwiastkowych
-[zapasAmp, zapasFaz, wAmp, wFaz] = margin(Ks); %Zapasy stabilnosci
+[zw, zf, cw, cf] = margin(Ks); %Zapasy stabilnosci 
 
 
 %Badanie układu zamkniętego
-Ku = 1/(1+Ks); %Transmitancja uchybowa
+Kuch = 1/(1+Ks); %Transmitancja uchybowa
+
+%Odpowiedź skokowa transmitancji uchybowej
 figure
-step(Ku);
-title('Odpowiedź skokowa transmitancji uchybowej (Ku)');
+step(Kuch);
+title('Odpowiedź skokowa transmitancji uchybowej (Kuch)');
 grid on;
 
-Ky = Ks/(1+Ks); %Transmitancja układu zamkniętego 
+Kzam = Ks/(1+Ks); %Transmitancja układu zamkniętego 
+
+%Odpowiedź skokowa układu zamkniętego
 figure
-step(Ky);
-title('Odpowiedź skokowa transmitancji głównej (Ky)');
+step(Kzam);
+title('Odpowiedź skokowa transmitancji głównej (Kzam)');
 grid on;
 
+%Porównanie odpowiedzi skokowych obu transmitancji
 figure 
-step(Ku, Ky);
-legend('Ku', 'Ky');
-title('Porównanie odpowiedzi skokowej Ku i Ky');
+step(Kuch, Kzam);
+legend('Kuch', 'Kzam');
+title('Porównanie odpowiedzi skokowej Kuch i Kzam');
 grid on;
 
-minreal(K2); % Skraca tranmitancje (zera i bieguny)
+minreal(K2); %Uproszczenie transmitancji
 
-M = Ky; % Określenie zmiennych - wskaźnik nadążania
-q = Ku; % Określenie zmiennych - wskaźnik regulacji
+%Definicja wskaźników nadążania i regulacji
+trac = Kzam; %wskaźnik nadążania
+reg = Kuch; %wskaźnik regulacji
+
+% Porównanie charakterystyk amplitudowych wskaźników
 figure 
-bodemag(M);
+bodemag(trac);
 hold on;
-bodemag(q);
+bodemag(reg);
 xlim([1 10]);
 ylim([-3 8]);
 title('Przebieg wskaźnika nadążania i wskaźnika regulacji');
@@ -105,15 +117,17 @@ hold off;
 
 
 %% WYKRESY Z SYMULACJI (SIMULINK)
-% Definicja zmiennych w
+
+%Ustalenie parametrów zbiornika i warunków początkowych
 r1 = 1;             %promień zbiornika 
 a1 = pi * r1^2;     %Pole podstawy walca
 c1 = 1;             %Stała zaworu 
-h10 = 0.5;            %Warunek początkowy
+h10 = 0.5;          %Warunek początkowy
 
+%Uruchomienie symulacji modelu w Simulinku
 out = sim('Lab1_placeholder.slx');
 
-
+%Wykres zmian przepływu w czasie
 figure;
 plot(out.Flow.Time, out.Flow.Data); 
 grid on;
@@ -121,6 +135,7 @@ title('Przebieg odpowiedzi skokowej przepływu (q_{12})');
 xlabel('Czas t [s]');
 ylabel('Przepływ q_{12} [m^3/s]');
 
+%Wykres zmian wysokości cieczy w zbiorniku
 figure;
 plot(out.Level.Time, out.Level.Data); 
 grid on;
