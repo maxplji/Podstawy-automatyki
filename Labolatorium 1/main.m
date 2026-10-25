@@ -17,6 +17,22 @@ zpk(Ks); %Postać biegunowa transmitancji
 %Wykres zer i biegunów układu
 figure
 pzmap(Ks); 
+grid on;
+xlim([ -0.4 0.1]);
+ylim([-0.01 0.01]);
+
+
+%Alternatywny sposób na wyświetlenie biegunów transmitancji (bieguny są
+%zaznaczone grubszą linią przez co są wyraźne, jednak do tego celu używamy
+%innej funkcji)
+figure;
+h = pzplot(Ks);
+h.Responses(1).MarkerSize = 18;
+h.Responses(1).LineWidth = 2;
+grid on;
+h.XLimits = [-0.4 0];
+h.YLimits = [-0.01 0.01];
+
 
 [L, trac] = tfdata(Ks, 'v'); %Pobranie licznika i mianownika transmitancji
 
@@ -52,21 +68,22 @@ setoptions(wykr,'PhaseUnits','rad','Grid','on');
 figure;
 bode(Ks, w);
 grid on;
-title('Charakterystyka Bodego');
+title('Charakterystyki Bodego');
 
-%Charakterystyka amplitudowa układu
+%Charakterystyka amplitudowa ( I wykres Bodego układu)
 figure;
 bodemag(Ks, w);
 grid on;
 title('Charakterystyka amplitudowa');
 
-%Charakterystyka amplitudowa bez wykresu fazy
+%Charakterystyka fazy ( II wykres Bodego układu)
 figure;
 wykr = bodeplot(Ks, w);
 setoptions(wykr, 'MagUnits', 'abs', 'PhaseVisible', 'off');
+title('Charakterystyka amplitudowa');
 
 %linie pierwiastkowe
-K2 = 1/((s*T1+1)*(s*T2+1));
+
 figure
 rlocus(Ks); %Wykres linii pierwiastkowych
 %figure
@@ -98,19 +115,15 @@ legend('Kuch', 'Kzam');
 title('Porównanie odpowiedzi skokowej Kuch i Kzam');
 grid on;
 
-minreal(K2); %Uproszczenie transmitancji
-
-%Definicja wskaźników nadążania i regulacji
-trac = Kzam; %wskaźnik nadążania
-reg = Kuch; %wskaźnik regulacji
+Ks = minreal(Ks); %Uproszczenie transmitancji (usunięcie par biegunów, które się skracają ze sobą)
 
 %Porównanie charakterystyk amplitudowych wskaźników
 figure 
-bodemag(trac);
+bodemag(Kzam);
 hold on;
-bodemag(reg);
-xlim([1 10]);
-ylim([-3 8]);
+bodemag(Kuch);
+%xlim([1 10]);
+%ylim([-3 8]);
 title('Przebieg wskaźnika nadążania i wskaźnika regulacji');
 grid on;
 hold off;
