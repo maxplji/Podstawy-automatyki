@@ -34,7 +34,7 @@ grid on;
 
 
 Ks2 = Ks * (s+1);   %Utworzenie drugiej transmitancji do porównania charakterystyk
-w = logspace(-4, 2, 3000);   % Zakres częstotliwości do analizy charakterystyk
+w = logspace(-4, 2, 3000);   %Zakres częstotliwości do analizy charakterystyk
 
 %Charakterystyki Nyquista dla obu transmitancji
 figure 
@@ -104,7 +104,7 @@ minreal(K2); %Uproszczenie transmitancji
 trac = Kzam; %wskaźnik nadążania
 reg = Kuch; %wskaźnik regulacji
 
-% Porównanie charakterystyk amplitudowych wskaźników
+%Porównanie charakterystyk amplitudowych wskaźników
 figure 
 bodemag(trac);
 hold on;
