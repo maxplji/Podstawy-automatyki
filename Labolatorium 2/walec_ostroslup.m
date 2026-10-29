@@ -10,15 +10,15 @@ H2 = 10;
 
 
 %charakterystyka statyczna
-qwe = 3;
+qwe = 0.5;
 q0 = qwe;
 h10 = q0*q0 / (C1*C1);
 h20 = (q0./C2).^2 ;
 
-Q = 0:0.01: 5;
+Q = 0:0.01: 0.8;
 
 H10 = (Q./C1).^2;
-H20 = (C1/C2).^2. *H10;
+H20 = (Q./C2).^2;
 
 figure;
 plot(Q, H10, 'b', Q, H20, 'r', 'LineWidth', 1.5);
