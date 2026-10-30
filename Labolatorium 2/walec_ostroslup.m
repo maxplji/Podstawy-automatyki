@@ -2,16 +2,20 @@ clc;
 clear;
 close all;
 
-C1 = 1.0847;
-C2 = 0.263067;
+A2 = 1.47044;
+B2 = 4.08042;
 
-H1 = 1 ;
+H1 = 3 ;
 H2 = 10;
 
+R1 = 1.9544;
 
-%charakterystyka statyczna
+C1 = 1.8257;
+C2 = 0.745356;
+
 qwe = 0.5;
 q0 = qwe;
+pp = 0.5;
 h10 = q0*q0 / (C1*C1);
 h20 = (q0./C2).^2 ;
 
@@ -27,3 +31,12 @@ xlabel('Q');
 ylabel('H');
 title('Charakterystyka statyczna');
 legend('H_1(Q)', 'H_2(Q)', 'Location', 'northwest');
+
+out = sim('walec_ostroslup_simulink.slx');
+
+figure;
+plot(out.qwy.time, out.qwy.data);
+grid on;
+xlabel('x');
+ylabel('y');
+title('qwy');
