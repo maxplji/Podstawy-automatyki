@@ -16,7 +16,6 @@ C2 = 0.745356;
 
 
 %%%%%%%%%%%% charakterystyka statyczna %%%%%%%%%%%%%
-% Punkt pracy taki sam jak w labach 4 i 5: h20 = 0.5*H2.
 qwe0 = C2*sqrt(0.5*H2);
 qwe=qwe0;
 q0=qwe;
@@ -57,6 +56,23 @@ KPID = kr_PID*(1+(1/(TI_PID*s))+((TD_PID*s)/(TF_PID*s+1)));
 
 Kz_PID = (KPID*sys)/(1+KPID*sys);
 Ko_PID = sys*KPID;
+
+tc = 0.01;
+tkoniec = 80;
+
+sim('ukl_reg_ciagly.mdl', tkoniec);
+
+figure
+subplot(2,1,1)
+plot(tout, yt_c)
+grid on
+title('Wyjście y(t) — regulacja ciągła')
+
+subplot(2,1,2)
+plot(ut_c)
+grid on
+title('Sterowanie u(t) — regulacja ciągła')
+
 
 %% Transmitancja dyskretna obiektu K(s) z ZOH dla h1=0.1*Tmax
 Tmax = max([T1,T2,T3]);
