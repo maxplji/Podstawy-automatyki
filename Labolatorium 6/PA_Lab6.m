@@ -50,12 +50,15 @@ To = t1-T;
 kr_PID = 1.2*(T/(k*To));
 TI_PID = 2*To;
 TD_PID = 0.5*To;
-TF_PID = 0.05*TD_PID;       % Wspolczynnik 0.05 z przeslanego kodu; ustala prowadzacy.
+TF_PID = 0.05*TD_PID;       
 
 KPID = kr_PID*(1+(1/(TI_PID*s))+((TD_PID*s)/(TF_PID*s+1)));
 
 Kz_PID = (KPID*sys)/(1+KPID*sys);
 Ko_PID = sys*KPID;
+
+K = sys;
+Kr = KPID;
 
 tc = 0.01;
 tkoniec = 80;
@@ -73,16 +76,21 @@ plot(ut_c)
 grid on
 title('Sterowanie u(t) — regulacja ciągła')
 
+Tmax = max([T1,T2,T3]);
+
+h1 = round(0.1*Tmax,2);
+h2 = round(0.5*Tmax,2);
+h3 = round(Tmax,2);
 
 %% Transmitancja dyskretna obiektu K(s) z ZOH dla h1=0.1*Tmax
 Tmax = max([T1,T2,T3]);
-h1=0.1*Tmax;
+
 z=tf('z',h1);
 To_d=To+h1/2;
 Kr_PID_d = 1.2*(T/(k*To_d));
 TI_PID_d = 2 * To_d;
 TD_PID_d = 0.5 * To_d;
-TF_PID_d = 0.05 * TD_PID;
+TF_PID_d = 0.05 * TD_PID_d;
 
 Hr31 = Kr_PID_d *  (1 + (h1/TI_PID_d * z/(z-1)) + TD_PID_d/h1* ( (z-1) / z ) );
 Hr=Hr31;
@@ -98,7 +106,7 @@ legend('y(t) dla K(s)','y(ih) dla H(z)')
 %=====================================================================
 
 %% Transmitancja dyskretna obiektu K(s) z ZOH dla h2=0.5*Tmax
-h2=0.5*Tmax;
+
 z2=tf('z',h2);
 To_d2=To+h2/2;
 Kr_PID_d2 = 1.2*(T/(k*To_d2));
@@ -120,7 +128,7 @@ legend('y(t) dla K(s)','y(ih) dla H(z)')
 %=====================================================================
 
 %% Transmitancja dyskretna obiektu K(s) z ZOH dla h3=1*Tmax
-h3=1*Tmax;
+
 z3=tf('z',h3);
 To_d3=To+h3/2;
 Kr_PID_d3 = 1.2*(T/(k*To_d3));
@@ -142,7 +150,7 @@ legend('y(t) dla K(s)','y(ih) dla H(z)')
 %=====================================================================
 
 tc=0.01;
-tkoniec=80;
+tkoniec=200;
 
 %% zad2
 
@@ -151,6 +159,90 @@ Hr34 = Kr_PID_d *  (1 + (1/(TI_PID_d*(2/h1*(z-1)/(z+1)))) + TD_PID_d* (2/h1*(z-1
 Hr35 = Kr_PID_d *  (1 + (1/(TI_PID_d*(2/h1*(z-1)/(z+1)))) + (TD_PID_d* (2/h1*(z-1)/(z+1)))/(1+TF_PID_d*(2/h1*(z-1)/(z+1))));    %dla metody Hr2
 Hr4=Hr34;
 Hr5=Hr35;
+
+fprintf('\nPUNKT 0 - h = %.6f s\n', h2);
+
+fprintf('\nNastawy z laboratorium 4:\n');
+fprintf('kr = %.6f\n', kr_PID);
+fprintf('Ti = %.6f s\n', TI_PID);
+fprintf('Td = %.6f s\n', TD_PID);
+fprintf('Tf = %.6f s\n', TF_PID);
+
+fprintf('\nNastawy wlasciwe dla h = %.6f s:\n', h2);
+fprintf('To_d = %.6f s\n', To_d2);
+fprintf('kr = %.6f\n', Kr_PID_d2);
+fprintf('Ti = %.6f s\n', TI_PID_d2);
+fprintf('Td = %.6f s\n', TD_PID_d2);
+
+
+%% Punkt 0 - nastawy z regulacji ciaglej dla h2
+Hr2 = kr_PID * (1 + h2/TI_PID*z2/(z2-1) ...
+                   + TD_PID/h2*(z2-1)/z2);
+
+sim('ukl_reg_dysk.mdl',tkoniec)
+
+[y_ciagly,t_ciagly] = step(Kz_PID,0:tc:tkoniec);
+
+figure('Color','w','Position',[100 100 1200 750])
+tiledlayout(2,1,'TileSpacing','compact','Padding','compact')
+
+nexttile
+hold on
+p1 = plot(tout,yt_d1,'b','LineWidth',1.8);
+p2 = stem(yih1.time,yih1.signals.values, ...
+    ':b','filled','MarkerSize',5);
+p3 = plot(t_ciagly,y_ciagly,'r--','LineWidth',1.8);
+hold off
+
+grid on
+ylim('auto')
+xlim([0 tkoniec])
+ylabel('Wyjscie y(t)')
+title('Punkt 0 - wyjscie, h = 0.5*Tmax')
+legend([p1 p2 p3],{'Dyskretny','Probki','Ciagly'}, ...
+    'Location','best')
+
+nexttile
+hold on
+p1 = stairs(ut_d1.Time,ut_d1.Data,'b','LineWidth',1.8);
+p2 = plot(ut_c.Time,ut_c.Data,'r--','LineWidth',1.8);
+hold off
+
+grid on
+xlim([0 tkoniec])
+xlabel('Czas [s]')
+ylabel('Sterowanie u(t)')
+title('Punkt 0 - sterowanie, h = 0.5*Tmax')
+legend([p1 p2],{'Dyskretny','Ciagly'},'Location','best')
+
+set(findall(gcf,'Type','axes'), ...
+    'Color','w','XColor','k','YColor','k','FontSize',12)
+set(findall(gcf,'Type','text'),'Color','k')
+set(findall(gcf,'Type','legend'), ...
+    'Color','w','TextColor','k','EdgeColor','k')
+
+figure
+subplot(2,1,1)
+    hold on
+    plot(tout,yt_d1,'g');
+    stem(yih1.time,yih1.signals.values,'filled',':g');
+    step(Kz_PID,tkoniec,'k');
+    hold off
+grid on
+title('Punkt 0 - wyjscie y(t), h = 0.5*Tmax')
+legend('Dyskretny','Probki','Ciagly')
+
+subplot(2,1,2)
+    hold on
+    plot(ut_d1,'g');
+    plot(ut_c,'k');
+    hold off
+grid on
+title('Punkt 0 - sterowanie u(t), h = 0.5*Tmax')
+legend('Dyskretny','Ciagly')
+
+Hr2 = Hr32;
+
 
 sim('ukl_reg_dysk.mdl',tkoniec)
 
